@@ -27,7 +27,6 @@ public class SecurityConfiguration {
                         .logoutSuccessUrl("/")
                 )
                 .rememberMe(remember -> remember
-                        .rememberMeCookieName("remember-me")
                         .tokenValiditySeconds(300)
                 );
 
