@@ -24,7 +24,6 @@ public class SecurityConfiguration {
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
                         .logoutSuccessUrl("/")
                 )
                 .rememberMe(remember -> remember
