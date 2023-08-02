@@ -26,6 +26,10 @@ public class SecurityConfiguration {
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/")
+                )
+                .rememberMe(remember -> remember
+                        .rememberMeCookieName("remember-me")
+                        .tokenValiditySeconds(300)
                 );
 
         return http.build();
