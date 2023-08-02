@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+prgrms_keystore.p12
+prgrms_truststore.p12

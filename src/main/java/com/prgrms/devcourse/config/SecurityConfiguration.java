@@ -28,6 +28,9 @@ public class SecurityConfiguration {
                 )
                 .rememberMe(remember -> remember
                         .tokenValiditySeconds(300)
+                )
+                .requiresChannel(channel -> channel
+                        .anyRequest().requiresSecure()
                 );
 
         return http.build();
