@@ -21,7 +21,12 @@ public class SecurityConfiguration {
                 )
                 .formLogin(form -> form
                         .defaultSuccessUrl("/")
-                        .permitAll());
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/")
+                );
 
         return http.build();
     }
