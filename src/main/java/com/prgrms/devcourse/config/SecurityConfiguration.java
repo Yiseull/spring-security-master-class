@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -42,6 +43,13 @@ public class SecurityConfiguration {
                 )
                 .requiresChannel(channel -> channel
                         .anyRequest().requiresSecure()
+                )
+                .sessionManagement(session -> session
+                        .sessionFixation().changeSessionId() // default
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // default
+                        .invalidSessionUrl("/")
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false) // default
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .accessDeniedHandler(accessDeniedHandler())
