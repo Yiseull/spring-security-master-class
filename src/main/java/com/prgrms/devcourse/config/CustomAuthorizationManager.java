@@ -18,11 +18,16 @@ public final class CustomAuthorizationManager implements AuthorizationManager<Re
 
     @Override
     public AuthorizationDecision check(Supplier<Authentication> authentication, RequestAuthorizationContext object) {
-        boolean decision = isOddAdmin(authentication.get());
-        if (decision) {
-            return new AuthorizationDecision(true);
-        }
-       return new AuthorizationDecision(false);
+        boolean granted = isGranted(authentication.get());
+        return new AuthorizationDecision(granted);
+    }
+
+    private boolean isGranted(Authentication authentication) {
+        return authentication != null && isAuthorized(authentication);
+    }
+
+    private boolean isAuthorized(Authentication authentication) {
+        return isOddAdmin(authentication);
     }
 
     private boolean isOddAdmin(Authentication authentication) {
