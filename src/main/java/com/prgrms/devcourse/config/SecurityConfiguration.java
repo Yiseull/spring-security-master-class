@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
@@ -14,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 
 import static org.springframework.security.authorization.AuthenticatedAuthorizationManager.fullyAuthenticated;
 import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasRole;
@@ -24,11 +26,11 @@ import static org.springframework.security.authorization.AuthorizationManagers.a
 public class SecurityConfiguration {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthorizationManager<RequestAuthorizationContext> authz) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/me").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/admin").access(allOf(fullyAuthenticated(), hasRole("ADMIN")))
+                        .requestMatchers("/admin").access(allOf(fullyAuthenticated(), hasRole("ADMIN"), authz))
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
@@ -67,14 +69,22 @@ public class SecurityConfiguration {
                         .roles("USER")
                         .build();
 
-        UserDetails admin =
+        UserDetails admin01 =
                 User.withDefaultPasswordEncoder()
-                        .username("admin")
+                        .username("admin01")
                         .password("admin123")
                         .roles("ADMIN")
                         .build();
 
-        return new InMemoryUserDetailsManager(user, admin);
+        UserDetails admin02 =
+                User.withDefaultPasswordEncoder()
+                        .username("admin02")
+                        .password("admin123")
+                        .roles("ADMIN")
+                        .build();
+
+
+        return new InMemoryUserDetailsManager(user, admin01, admin02);
     }
 
     @Bean
