@@ -20,6 +20,7 @@ import org.springframework.security.web.access.intercept.RequestAuthorizationCon
 import static org.springframework.security.authorization.AuthenticatedAuthorizationManager.fullyAuthenticated;
 import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasRole;
 import static org.springframework.security.authorization.AuthorizationManagers.allOf;
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Slf4j
 @Configuration
@@ -55,7 +56,8 @@ public class SecurityConfiguration {
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .accessDeniedHandler(accessDeniedHandler())
-                );
+                )
+                .httpBasic(withDefaults());
 
         return http.build();
     }
