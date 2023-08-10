@@ -30,7 +30,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http, AuthorizationManager<RequestAuthorizationContext> authz) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/me").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/me", "/asyncHello").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/admin").access(allOf(fullyAuthenticated(), hasRole("ADMIN"), authz))
                         .anyRequest().permitAll()
                 )
