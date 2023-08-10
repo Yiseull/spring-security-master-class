@@ -1,5 +1,7 @@
 package com.prgrms.devcourse.controller;
 
+import com.prgrms.devcourse.service.SimpleService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,7 +13,10 @@ import java.util.concurrent.Callable;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 public class SimpleController {
+
+    private final SimpleService simpleService;
 
     @GetMapping("/asyncHello")
     public Callable<String> asyncHello() {
@@ -25,5 +30,13 @@ public class SimpleController {
         };
         log.info("[After callable] asyncHello completed.");
         return callable;
+    }
+
+    @GetMapping("/someMethod")
+    public String someMethod() {
+        log.info("someMethod started.");
+        simpleService.asyncMethod();
+        log.info("someMethod completed.");
+        return "OK";
     }
 }
