@@ -30,6 +30,9 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 public class SecurityConfiguration {
 
+    public static final String ADMIN = "ADMIN";
+    public static final String USER = "USER";
+
     @Bean
     @Qualifier("myAsyncTaskExecutor")
     public ThreadPoolTaskExecutor threadPoolTaskExecutor() {
@@ -51,8 +54,8 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http, AuthorizationManager<RequestAuthorizationContext> authz) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/me", "/asyncHello", "/someMethod").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/admin").access(allOf(fullyAuthenticated(), hasRole("ADMIN"), authz))
+                        .requestMatchers("/me", "/asyncHello", "/someMethod").hasAnyRole(USER, ADMIN)
+                        .requestMatchers("/admin").access(allOf(fullyAuthenticated(), hasRole(ADMIN), authz))
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
@@ -89,21 +92,21 @@ public class SecurityConfiguration {
                 User.withDefaultPasswordEncoder()
                         .username("user")
                         .password("user123")
-                        .roles("USER")
+                        .roles(USER)
                         .build();
 
         UserDetails admin01 =
                 User.withDefaultPasswordEncoder()
                         .username("admin01")
                         .password("admin123")
-                        .roles("ADMIN")
+                        .roles(ADMIN)
                         .build();
 
         UserDetails admin02 =
                 User.withDefaultPasswordEncoder()
                         .username("admin02")
                         .password("admin123")
-                        .roles("ADMIN")
+                        .roles(ADMIN)
                         .build();
 
 
