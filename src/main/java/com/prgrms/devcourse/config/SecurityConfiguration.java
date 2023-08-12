@@ -15,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -101,7 +103,32 @@ public class SecurityConfiguration {
     public UserDetailsService userDetailsService(DataSource dataSource) {
         JdbcDaoImpl jdbcDao = new JdbcDaoImpl();
         jdbcDao.setDataSource(dataSource);
+        jdbcDao.setEnableAuthorities(false);
+        jdbcDao.setEnableGroups(true);
+        jdbcDao.setUsersByUsernameQuery(
+                "SELECT " +
+                    "login_id, passwd, true " +
+                "FROM " +
+                    "USERS " +
+                "WHERE " +
+                    "login_id = ?"
+        );
+        jdbcDao.setGroupAuthoritiesByUsernameQuery(
+                "SELECT " +
+                    "u.login_id, g.name, p.name " +
+                "FROM " +
+                    "users u JOIN groups g ON u.group_id = g.id " +
+                    "LEFT JOIN group_permission gp ON g.id = gp.group_id " +
+                    "JOIN permissions p ON p.id = gp.permission_id " +
+                "WHERE " +
+                    "u.login_id = ?"
+        );
         return jdbcDao;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
