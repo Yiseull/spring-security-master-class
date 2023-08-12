@@ -1,6 +1,7 @@
 package com.prgrms.devcourse.config;
 
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -14,9 +15,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -32,10 +33,12 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfiguration {
 
     public static final String ADMIN = "ADMIN";
     public static final String USER = "USER";
+    private final DataSource dataSource;
 
     @Bean
     @Qualifier("myAsyncTaskExecutor")
@@ -101,29 +104,28 @@ public class SecurityConfiguration {
 
     @Bean
     public UserDetailsService userDetailsService(DataSource dataSource) {
-        JdbcDaoImpl jdbcDao = new JdbcDaoImpl();
-        jdbcDao.setDataSource(dataSource);
-        jdbcDao.setEnableAuthorities(false);
-        jdbcDao.setEnableGroups(true);
-        jdbcDao.setUsersByUsernameQuery(
+        JdbcUserDetailsManager users = new JdbcUserDetailsManager(dataSource);
+        users.setUsersByUsernameQuery(
                 "SELECT " +
-                    "login_id, passwd, true " +
+                        "login_id, passwd, true " +
                 "FROM " +
-                    "USERS " +
+                        "users " +
                 "WHERE " +
-                    "login_id = ?"
+                        "login_id = ?"
         );
-        jdbcDao.setGroupAuthoritiesByUsernameQuery(
+        users.setGroupAuthoritiesByUsernameQuery(
                 "SELECT " +
-                    "u.login_id, g.name, p.name " +
+                        "u.login_id, g.name, p.name " +
                 "FROM " +
-                    "users u JOIN groups g ON u.group_id = g.id " +
-                    "LEFT JOIN group_permission gp ON g.id = gp.group_id " +
+                        "users u JOIN groups g ON u.group_id = g.id " +
+                        "LEFT JOIN group_permission gp ON g.id = gp.group_id " +
                     "JOIN permissions p ON p.id = gp.permission_id " +
                 "WHERE " +
                     "u.login_id = ?"
         );
-        return jdbcDao;
+        users.setEnableAuthorities(false);
+        users.setEnableGroups(true);
+        return users;
     }
 
     @Bean
