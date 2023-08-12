@@ -13,15 +13,15 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import javax.sql.DataSource;
 
 import static org.springframework.security.authorization.AuthenticatedAuthorizationManager.fullyAuthenticated;
 import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasRole;
@@ -98,30 +98,10 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails user =
-                User.withDefaultPasswordEncoder()
-                        .username("user")
-                        .password("user123")
-                        .roles(USER)
-                        .build();
-
-        UserDetails admin01 =
-                User.withDefaultPasswordEncoder()
-                        .username("admin01")
-                        .password("admin123")
-                        .roles(ADMIN)
-                        .build();
-
-        UserDetails admin02 =
-                User.withDefaultPasswordEncoder()
-                        .username("admin02")
-                        .password("admin123")
-                        .roles(ADMIN)
-                        .build();
-
-
-        return new InMemoryUserDetailsManager(user, admin01, admin02);
+    public UserDetailsService userDetailsService(DataSource dataSource) {
+        JdbcDaoImpl jdbcDao = new JdbcDaoImpl();
+        jdbcDao.setDataSource(dataSource);
+        return jdbcDao;
     }
 
     @Bean
