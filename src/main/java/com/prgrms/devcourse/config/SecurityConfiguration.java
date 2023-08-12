@@ -9,6 +9,7 @@ import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,6 +21,7 @@ import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecu
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import static org.springframework.security.authorization.AuthenticatedAuthorizationManager.fullyAuthenticated;
 import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasRole;
@@ -54,9 +56,18 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http, AuthorizationManager<RequestAuthorizationContext> authz) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/me", "/asyncHello", "/someMethod").hasAnyRole(USER, ADMIN)
-                        .requestMatchers("/admin").access(allOf(fullyAuthenticated(), hasRole(ADMIN), authz))
+                        .requestMatchers(new AntPathRequestMatcher("/me"),
+                                new AntPathRequestMatcher("/asyncHello"),
+                                new AntPathRequestMatcher("/someMethod")).hasAnyRole(USER, ADMIN)
+                        .requestMatchers(new AntPathRequestMatcher("/admin")).access(allOf(fullyAuthenticated(), hasRole(ADMIN), authz))
                         .anyRequest().permitAll()
+                )
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(new AntPathRequestMatcher("/h2-console/**"))
+                )
+                .headers(headers -> headers
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin
+                        )
                 )
                 .formLogin(form -> form
                         .defaultSuccessUrl("/")
