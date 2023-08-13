@@ -6,9 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,13 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-
-import static org.springframework.security.authorization.AuthenticatedAuthorizationManager.fullyAuthenticated;
-import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasRole;
-import static org.springframework.security.authorization.AuthorizationManagers.allOf;
-import static org.springframework.security.config.Customizer.withDefaults;
 
 @Slf4j
 @Configuration
@@ -39,46 +31,30 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, AuthorizationManager<RequestAuthorizationContext> authz) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(new AntPathRequestMatcher("/me"),
-                                new AntPathRequestMatcher("/asyncHello"),
-                                new AntPathRequestMatcher("/someMethod")).hasAnyRole(USER, ADMIN)
-                        .requestMatchers(new AntPathRequestMatcher("/admin")).access(allOf(fullyAuthenticated(), hasRole(ADMIN), authz))
+                        .requestMatchers(new AntPathRequestMatcher("/api/user/me")).hasAnyRole(USER, ADMIN)
                         .anyRequest().permitAll()
                 )
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers(new AntPathRequestMatcher("/h2-console/**"))
+                .csrf(csrf -> csrf.disable()
                 )
-                .headers(headers -> headers
-                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin
-                        )
+                .headers(headers -> headers.disable()
                 )
-                .formLogin(form -> form
-                        .defaultSuccessUrl("/")
-                        .permitAll()
+                .httpBasic(basic -> basic.disable()
                 )
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/")
+                .formLogin(form -> form.disable()
                 )
-                .rememberMe(remember -> remember
-                        .tokenValiditySeconds(300)
+                .logout(logout -> logout.disable()
                 )
-                .requiresChannel(channel -> channel
-                        .anyRequest().requiresSecure()
+                .rememberMe(remember -> remember.disable()
                 )
                 .sessionManagement(session -> session
-                        .sessionFixation().changeSessionId() // default
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // default
-                        .invalidSessionUrl("/")
-                        .maximumSessions(1)
-                        .maxSessionsPreventsLogin(false) // default
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .accessDeniedHandler(accessDeniedHandler())
-                )
-                .httpBasic(withDefaults());
+                );
 
         return http.build();
     }
