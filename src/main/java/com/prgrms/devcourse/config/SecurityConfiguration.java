@@ -1,5 +1,6 @@
 package com.prgrms.devcourse.config;
 
+import com.prgrms.devcourse.jwt.Jwt;
 import com.prgrms.devcourse.user.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +24,14 @@ public class SecurityConfiguration {
     public static final String ADMIN = "ADMIN";
     public static final String USER = "USER";
 
+    private JwtConfigure jwtConfigure;
+
     private UserService userService;
+
+    @Autowired
+    public void setJwtConfigure(JwtConfigure jwtConfigure) {
+        this.jwtConfigure = jwtConfigure;
+    }
 
     @Autowired
     public void setUserService(UserService userService) {
@@ -62,6 +70,15 @@ public class SecurityConfiguration {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public Jwt jwt() {
+        return new Jwt(
+                jwtConfigure.getIssuer(),
+                jwtConfigure.getClientSecret(),
+                jwtConfigure.getExpirySeconds()
+        );
     }
 
     @Bean
