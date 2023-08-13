@@ -1,6 +1,7 @@
 package com.prgrms.devcourse.config;
 
 import com.prgrms.devcourse.jwt.Jwt;
+import com.prgrms.devcourse.jwt.JwtAuthenticationFilter;
 import com.prgrms.devcourse.user.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Slf4j
@@ -36,6 +38,10 @@ public class SecurityConfiguration {
     @Autowired
     public void setUserService(UserService userService) {
         this.userService = userService;
+    }
+
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter(jwtConfigure.getHeader(), jwt());
     }
 
     @Bean
@@ -62,7 +68,9 @@ public class SecurityConfiguration {
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .accessDeniedHandler(accessDeniedHandler())
-                );
+                )
+                .addFilterAfter(jwtAuthenticationFilter(), SecurityContextHolderFilter.class)
+        ;
 
         return http.build();
     }
