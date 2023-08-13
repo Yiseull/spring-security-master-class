@@ -1,8 +1,9 @@
 package com.prgrms.devcourse.config;
 
+import com.prgrms.devcourse.user.UserService;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,17 +15,13 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-
-import javax.sql.DataSource;
 
 import static org.springframework.security.authorization.AuthenticatedAuthorizationManager.fullyAuthenticated;
 import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasRole;
@@ -33,12 +30,17 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Slf4j
 @Configuration
-@RequiredArgsConstructor
 public class SecurityConfiguration {
 
     public static final String ADMIN = "ADMIN";
     public static final String USER = "USER";
-    private final DataSource dataSource;
+
+    private UserService userService;
+
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
 
     @Bean
     @Qualifier("myAsyncTaskExecutor")
@@ -100,32 +102,6 @@ public class SecurityConfiguration {
                 .httpBasic(withDefaults());
 
         return http.build();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService(DataSource dataSource) {
-        JdbcUserDetailsManager users = new JdbcUserDetailsManager(dataSource);
-        users.setUsersByUsernameQuery(
-                "SELECT " +
-                        "login_id, passwd, true " +
-                "FROM " +
-                        "users " +
-                "WHERE " +
-                        "login_id = ?"
-        );
-        users.setGroupAuthoritiesByUsernameQuery(
-                "SELECT " +
-                        "u.login_id, g.name, p.name " +
-                "FROM " +
-                        "users u JOIN groups g ON u.group_id = g.id " +
-                        "LEFT JOIN group_permission gp ON g.id = gp.group_id " +
-                    "JOIN permissions p ON p.id = gp.permission_id " +
-                "WHERE " +
-                    "u.login_id = ?"
-        );
-        users.setEnableAuthorities(false);
-        users.setEnableGroups(true);
-        return users;
     }
 
     @Bean
