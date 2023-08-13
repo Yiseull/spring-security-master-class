@@ -16,6 +16,7 @@ repositories {
 }
 
 dependencies {
+	implementation 'com.google.guava:guava:32.1.2-jre'
 	implementation 'com.auth0:java-jwt:4.4.0'
 	implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
