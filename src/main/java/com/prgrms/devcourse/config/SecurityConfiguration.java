@@ -4,11 +4,8 @@ import com.prgrms.devcourse.user.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.AsyncTaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
@@ -17,7 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
@@ -40,23 +36,6 @@ public class SecurityConfiguration {
     @Autowired
     public void setUserService(UserService userService) {
         this.userService = userService;
-    }
-
-    @Bean
-    @Qualifier("myAsyncTaskExecutor")
-    public ThreadPoolTaskExecutor threadPoolTaskExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(3);
-        executor.setMaxPoolSize(5);
-        executor.setThreadNamePrefix("my-executor-");
-        return executor;
-    }
-
-    @Bean
-    public DelegatingSecurityContextAsyncTaskExecutor taskExecutor(
-            @Qualifier("myAsyncTaskExecutor") AsyncTaskExecutor delegate
-    ) {
-        return new DelegatingSecurityContextAsyncTaskExecutor(delegate);
     }
 
     @Bean
