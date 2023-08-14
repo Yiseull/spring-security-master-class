@@ -2,12 +2,14 @@ package com.prgrms.devcourse.config;
 
 import com.prgrms.devcourse.jwt.Jwt;
 import com.prgrms.devcourse.jwt.JwtAuthenticationFilter;
+import com.prgrms.devcourse.jwt.JwtAuthenticationProvider;
 import com.prgrms.devcourse.user.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
@@ -26,18 +28,10 @@ public class SecurityConfiguration {
     public static final String ADMIN = "ADMIN";
     public static final String USER = "USER";
 
-    private JwtConfigure jwtConfigure;
+    private final JwtConfigure jwtConfigure;
 
-    private UserService userService;
-
-    @Autowired
-    public void setJwtConfigure(JwtConfigure jwtConfigure) {
+    public SecurityConfiguration(JwtConfigure jwtConfigure) {
         this.jwtConfigure = jwtConfigure;
-    }
-
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
     }
 
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
@@ -87,6 +81,16 @@ public class SecurityConfiguration {
                 jwtConfigure.getClientSecret(),
                 jwtConfigure.getExpirySeconds()
         );
+    }
+
+    @Bean
+    public JwtAuthenticationProvider jwtAuthenticationProvider(Jwt jwt, UserService userService) {
+        return new JwtAuthenticationProvider(jwt, userService);
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(JwtAuthenticationProvider jwtAuthenticationProvider) {
+        return new ProviderManager(jwtAuthenticationProvider);
     }
 
     @Bean
