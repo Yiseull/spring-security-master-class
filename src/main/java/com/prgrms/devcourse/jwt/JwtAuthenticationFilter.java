@@ -7,7 +7,6 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -58,8 +57,8 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
                     List<GrantedAuthority> authorities = getAuthorities(claims);
 
                     if (isNotEmpty(username) && authorities.size() > 0) {
-                        UsernamePasswordAuthenticationToken authentication
-                                = new UsernamePasswordAuthenticationToken(username, null, authorities);
+                        JwtAuthenticationToken authentication
+                                = new JwtAuthenticationToken(new JwtAuthentication(token, username), null, authorities);
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                     }
